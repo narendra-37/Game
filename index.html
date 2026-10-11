@@ -1,0 +1,377 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Mind Vault — Neural Arcade 3-in-1</title>
+    <!-- Modern Typography -->
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800&family=JetBrains+Mono:wght@500;700&family=Space+Grotesk:wght@500;700&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="style.css" />
+  </head>
+  <body>
+    <!-- Ambient Cyber Glows -->
+    <div class="ambient-glow glow-1" aria-hidden="true"></div>
+    <div class="ambient-glow glow-2" aria-hidden="true"></div>
+    <div class="ambient-glow glow-3" aria-hidden="true"></div>
+
+    <!-- Celebration Canvas for Confetti -->
+    <canvas id="confettiCanvas" class="confetti-canvas"></canvas>
+
+    <main class="wrapper">
+      <div
+        class="card"
+        id="gameCard"
+        role="application"
+        aria-label="Neural Arcade Game Hub"
+      >
+        <!-- Top Status Bar & Controls -->
+        <header class="card-header">
+          <div class="header-top">
+            <span class="badge arcade-pill">
+              <span class="pulsing-dot"></span> 🧠 NEURAL HUB
+            </span>
+            <div class="header-actions">
+              <button
+                id="soundToggleBtn"
+                class="icon-btn"
+                type="button"
+                aria-label="Toggle Sound"
+                title="Toggle Audio Feedback"
+              >
+                <span id="soundIcon">🔊</span>
+              </button>
+              <button
+                id="fullscreenBtn"
+                class="icon-btn"
+                type="button"
+                aria-label="Toggle Fullscreen"
+                title="Toggle Fullscreen Mode (F)"
+              >
+                <span id="fullscreenIcon">⛶</span>
+              </button>
+            </div>
+          </div>
+
+          <!-- Master Game Hub Selector -->
+          <nav class="hub-nav" aria-label="Game Selection">
+            <button
+              type="button"
+              class="hub-tab active"
+              data-game="vault"
+              id="tabVault"
+            >
+              🔮 Number Vault
+            </button>
+            <button
+              type="button"
+              class="hub-tab"
+              data-game="memory"
+              id="tabMemory"
+            >
+              🧩 Memory Matrix
+            </button>
+            <button
+              type="button"
+              class="hub-tab"
+              data-game="math"
+              id="tabMath"
+            >
+              ⚡ Math Reflex
+            </button>
+          </nav>
+        </header>
+
+        <!-- ============================================== -->
+        <!-- GAME 1: NUMBER VAULT (CIPHER, RIDDLE & CODE) -->
+        <!-- ============================================== -->
+        <section class="game-view active" id="viewVault">
+          <div class="view-intro">
+            <h1 id="gameTitle">The Cryptic Oracle</h1>
+            <p class="sub" id="gameSub">
+              Decode the secret number using pure logic deduction, riddles, and clues.
+            </p>
+          </div>
+
+          <!-- Mode Selector within Vault -->
+          <div class="mode-bar" role="tablist" aria-label="Vault Modes">
+            <button
+              type="button"
+              class="mode-btn active"
+              data-mode="riddle"
+              role="tab"
+              aria-selected="true"
+            >
+              🧩 Cryptic Riddle
+            </button>
+            <button
+              type="button"
+              class="mode-btn"
+              data-mode="codebreaker"
+              role="tab"
+              aria-selected="false"
+            >
+              🔐 3-Digit Vault
+            </button>
+            <button
+              type="button"
+              class="mode-btn"
+              data-mode="classic"
+              role="tab"
+              aria-selected="false"
+            >
+              🎯 Classic Radar
+            </button>
+          </div>
+
+          <!-- Difficulty Bar -->
+          <div class="difficulty-bar" id="difficultyBar" role="radiogroup" aria-label="Select Difficulty">
+            <button
+              type="button"
+              class="diff-btn"
+              data-difficulty="easy"
+              aria-pressed="false"
+            >
+              Novice (1–50)
+            </button>
+            <button
+              type="button"
+              class="diff-btn active"
+              data-difficulty="medium"
+              aria-pressed="true"
+            >
+              Detective (1–100)
+            </button>
+            <button
+              type="button"
+              class="diff-btn"
+              data-difficulty="hard"
+              aria-pressed="false"
+            >
+              Mastermind (1–200)
+            </button>
+          </div>
+
+          <!-- Riddle Clues Grid -->
+          <div class="riddle-panel" id="riddlePanel" aria-label="Unlocked Clues">
+            <div class="panel-header">
+              <span class="panel-title">🔍 UNLOCKED CLUES</span>
+              <span class="clue-counter" id="clueCounter">4 of 4 revealed</span>
+            </div>
+            <div class="clues-grid" id="cluesGrid"></div>
+            <div class="radar-box" id="radarBox">
+              <div class="radar-header">
+                <span>🧠 Deduction Radar</span>
+                <span class="radar-count mono" id="candidateCount">? candidates</span>
+              </div>
+              <p class="radar-desc" id="radarDesc">
+                Only a handful of numbers in this realm satisfy every clue!
+              </p>
+            </div>
+          </div>
+
+          <!-- Range Indicator -->
+          <div class="range-tracker" id="rangeTracker" aria-label="Current deduced range">
+            <div class="range-labels">
+              <span>Narrowed Range:</span>
+              <span class="range-bounds">
+                <span id="narrowMin" class="mono">1</span>
+                <span class="range-arrow">⇄</span>
+                <span id="narrowMax" class="mono">100</span>
+              </span>
+            </div>
+            <div class="range-bar-track">
+              <div class="range-bar-fill" id="rangeBarFill"></div>
+            </div>
+          </div>
+
+          <!-- Controls -->
+          <div class="controls">
+            <div class="input-wrapper">
+              <label for="guessInput" class="sr-only">Enter your guess</label>
+              <input
+                id="guessInput"
+                type="number"
+                min="1"
+                max="100"
+                placeholder="Enter your deduction..."
+                autocomplete="off"
+                inputmode="numeric"
+              />
+            </div>
+            <button id="guessBtn" type="button">
+              <span>Deduce</span>
+              <span class="btn-glow"></span>
+            </button>
+            <button id="resetBtn" class="muted" type="button" title="Reset (Esc)">
+              Reset
+            </button>
+          </div>
+
+          <!-- Live Status -->
+          <div class="status" id="status" aria-live="polite">
+            <span class="status-icon">🔮</span>
+            <span class="status-text">Analyze the clues and deduce the number!</span>
+          </div>
+
+          <!-- Dashboard: Lives & Score -->
+          <div class="meta-dashboard">
+            <div class="stat-card">
+              <div class="stat-header">
+                <span class="stat-label">Neural Lives</span>
+                <span class="stat-value mono" id="attemptsLeft">10</span>
+              </div>
+              <div class="hearts-container" id="heartsContainer" aria-label="Remaining Lives"></div>
+            </div>
+
+            <div class="stat-card">
+              <div class="stat-header">
+                <span class="stat-label">Best Record</span>
+                <span class="stat-value mono" id="bestScoreText">—</span>
+              </div>
+              <div class="stat-caption" id="bestScoreCaption">Fewest attempts taken</div>
+            </div>
+          </div>
+
+          <!-- History -->
+          <div class="history-section">
+            <div class="history-header">
+              <span id="historyTitle">Deduction History:</span>
+              <span id="guessCountText" class="mono">0 made</span>
+            </div>
+            <div class="history-chips" id="previousGuesses" aria-label="Past attempts">
+              <span class="empty-history">No attempts yet</span>
+            </div>
+          </div>
+        </section>
+
+        <!-- ============================================== -->
+        <!-- GAME 2: MEMORY MATRIX (SEQUENCE PATTERN HACK) -->
+        <!-- ============================================== -->
+        <section class="game-view" id="viewMemory">
+          <div class="view-intro">
+            <h1>Memory Matrix</h1>
+            <p class="sub">
+              Watch the neural sequence flash across the grid, then repeat it accurately!
+            </p>
+          </div>
+
+          <!-- Memory Stats Bar -->
+          <div class="meta-dashboard memory-stats">
+            <div class="stat-card">
+              <div class="stat-header">
+                <span class="stat-label">Level</span>
+                <span class="stat-value mono" id="memoryLevel">1</span>
+              </div>
+              <div class="stat-caption">Current sequence length</div>
+            </div>
+            <div class="stat-card">
+              <div class="stat-header">
+                <span class="stat-label">Max Streak</span>
+                <span class="stat-value mono" id="memoryBest">Level 1</span>
+              </div>
+              <div class="stat-caption">Best sequence memorized</div>
+            </div>
+          </div>
+
+          <!-- Status Banner for Memory -->
+          <div class="status" id="memoryStatus" aria-live="polite">
+            <span class="status-icon">🧠</span>
+            <span class="status-text">Press 'Start Sequence' to begin!</span>
+          </div>
+
+          <!-- 3x3 Interactive Matrix Grid -->
+          <div class="matrix-grid-container">
+            <div class="matrix-grid" id="matrixGrid">
+              <button type="button" class="matrix-pad" data-pad="0" aria-label="Pad 1"></button>
+              <button type="button" class="matrix-pad" data-pad="1" aria-label="Pad 2"></button>
+              <button type="button" class="matrix-pad" data-pad="2" aria-label="Pad 3"></button>
+              <button type="button" class="matrix-pad" data-pad="3" aria-label="Pad 4"></button>
+              <button type="button" class="matrix-pad" data-pad="4" aria-label="Pad 5"></button>
+              <button type="button" class="matrix-pad" data-pad="5" aria-label="Pad 6"></button>
+              <button type="button" class="matrix-pad" data-pad="6" aria-label="Pad 7"></button>
+              <button type="button" class="matrix-pad" data-pad="7" aria-label="Pad 8"></button>
+              <button type="button" class="matrix-pad" data-pad="8" aria-label="Pad 9"></button>
+            </div>
+          </div>
+
+          <!-- Memory Action Button -->
+          <div class="memory-controls">
+            <button id="memoryStartBtn" type="button" class="wide-btn">
+              <span>Start Sequence</span>
+              <span class="btn-glow"></span>
+            </button>
+          </div>
+        </section>
+
+        <!-- ============================================== -->
+        <!-- GAME 3: MATH REFLEX (SPEED EQUATION BLITZ)     -->
+        <!-- ============================================== -->
+        <section class="game-view" id="viewMath">
+          <div class="view-intro">
+            <h1>Math Reflex Blitz</h1>
+            <p class="sub">
+              Race against the 30s clock! Solve dynamic mental arithmetic to rack up high combos.
+            </p>
+          </div>
+
+          <!-- Math Stats: Timer, Score, Multiplier -->
+          <div class="math-dashboard">
+            <div class="stat-card timer-card">
+              <span class="stat-label">Clock</span>
+              <span class="stat-value mono timer-val" id="mathTimer">30s</span>
+            </div>
+            <div class="stat-card">
+              <span class="stat-label">Score</span>
+              <span class="stat-value mono" id="mathScore">0</span>
+            </div>
+            <div class="stat-card">
+              <span class="stat-label">Combo</span>
+              <span class="stat-value mono combo-val" id="mathCombo">x1</span>
+            </div>
+          </div>
+
+          <!-- Question Display Card -->
+          <div class="equation-card">
+            <div class="equation-box">
+              <span class="equation-text mono" id="mathEquation">Ready?</span>
+            </div>
+          </div>
+
+          <!-- 4 Multiple Choice Answer Buttons -->
+          <div class="math-choices-grid" id="mathChoicesGrid">
+            <button type="button" class="choice-btn" data-choice="0">—</button>
+            <button type="button" class="choice-btn" data-choice="1">—</button>
+            <button type="button" class="choice-btn" data-choice="2">—</button>
+            <button type="button" class="choice-btn" data-choice="3">—</button>
+          </div>
+
+          <div class="math-controls">
+            <button id="mathStartBtn" type="button" class="wide-btn">
+              <span>Start Math Blitz (30s)</span>
+              <span class="btn-glow"></span>
+            </button>
+          </div>
+        </section>
+
+        <!-- Global Footer -->
+        <footer class="footer-note">
+          <span>💡 <kbd>Enter</kbd> submit</span>
+          <span class="separator">•</span>
+          <span><kbd>Esc</kbd> reset</span>
+          <span class="separator">•</span>
+          <span><kbd>F</kbd> fullscreen</span>
+          <span id="initialAttempts" style="display: none;">10</span>
+          <span id="rangeMinText" style="display: none;">1</span>
+          <span id="rangeMaxText" style="display: none;">100</span>
+        </footer>
+      </div>
+    </main>
+
+    <script src="script.js"></script>
+  </body>
+</html>
